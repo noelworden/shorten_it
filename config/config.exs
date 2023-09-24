@@ -8,7 +8,8 @@
 import Config
 
 config :shorten_it,
-  ecto_repos: [ShortenIt.Repo]
+  ecto_repos: [ShortenIt.Repo],
+  migration_timestamps: [type: :utc_datetime_usec]
 
 # Configures the endpoint
 config :shorten_it, ShortenItWeb.Endpoint,
