@@ -77,21 +77,25 @@ defmodule ShortenIt.Shortening do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_url(attrs \\ %{}) do
-    original_url = Map.get(attrs, "original_url")
+  def create_url(attrs \\ %{}, shortcode_generator \\ &shortcode_generator/0) do
+    shortened_url = shortcode_generator.()
 
-    with {:valid_original_url, true} <-
-           {:valid_original_url, Regex.match?(Url.valid_original_url_regex(), original_url)},
-         shortened_url = shortcode_generator(),
-         {:shortened_url_exists, nil} <- {:shortened_url_exists, Repo.get_by(Url, shortened_url: shortened_url)} do
-      attrs = Map.merge(%{"shortened_url" => shortened_url}, attrs)
+    attrs = Map.put(attrs, "shortened_url", shortened_url)
 
+    result =
       %Url{}
       |> Url.changeset(attrs)
       |> Repo.insert()
-    else
-      {:valid_original_url, false} -> {:error, :invalid_input}
-      {:shortened_url_exists, %Url{}} -> create_url()
+
+    case result do
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, %Ecto.Changeset{errors: [shortened_url: _]}} ->
+        create_url(attrs, shortcode_generator)
+
+      {:error, %Ecto.Changeset{errors: [original_url: _]} = changeset} ->
+        {:error, changeset}
     end
   end
 
