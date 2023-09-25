@@ -17,8 +17,10 @@ defmodule ShortenItWeb.Router do
   scope "/", ShortenItWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-    resources "/urls", UrlController
+    get "/", UrlController, :new
+    resources "/urls", UrlController, only: [:create, :show]
+    get "/stats", UrlController, :index
+    get "/:shortened_url", UrlController, :reroute
   end
 
   # Other scopes may use custom stacks.

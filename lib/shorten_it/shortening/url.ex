@@ -5,6 +5,8 @@ defmodule ShortenIt.Shortening.Url do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @valid_original_url_regex ~r/https?:\/\//
+
   schema "urls" do
     field :original_url, :string
     field :shortened_url, :string
@@ -13,11 +15,15 @@ defmodule ShortenIt.Shortening.Url do
     timestamps()
   end
 
+  def valid_original_url_regex, do: @valid_original_url_regex
   @doc false
   def changeset(url, attrs) do
     url
     |> cast(attrs, [:original_url, :shortened_url, :visit_count])
     |> validate_required([:original_url, :shortened_url])
     |> unique_constraint(:shortened_url)
+    |> validate_format(:original_url, @valid_original_url_regex,
+      message: "The url needs to begin with 'http://' or 'https://'"
+    )
   end
 end
