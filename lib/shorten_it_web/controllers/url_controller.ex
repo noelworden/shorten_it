@@ -16,50 +16,30 @@ defmodule ShortenItWeb.UrlController do
 
   def create(conn, %{"url" => url_params}) do
     case Shortening.create_url(url_params) do
-      {:ok, _url} ->
+      {:ok, url} ->
         conn
         |> put_flash(:info, "Url created successfully.")
+        |> redirect(to: ~p"/urls/#{url}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
-
-      {:error, :invalid_input} ->
-        conn
-        |> put_flash(:error, "The url needs to begin with 'http://' or 'https://'.")
-        |> render("new.html")
     end
   end
 
-  def show(conn, %{"shortend_url" => shortend_url}) do
-    redirect(conn, external: "https://www.google.com/search?q=" <> shortend_url <> "")
+  def show(conn, %{"id" => id}) do
+    url = Shortening.get_url!(id)
+    render(conn, :show, url: url)
   end
 
-  # def edit(conn, %{"id" => id}) do
-  #   url = Shortening.get_url!(id)
-  #   changeset = Shortening.change_url(url)
-  #   render(conn, :edit, url: url, changeset: changeset)
-  # end
+  def reroute(conn, %{"shortened_url" => shortened_url}) do
+    url = Shortening.get_url_and_update_counter(shortened_url)
 
-  # def update(conn, %{"id" => id, "url" => url_params}) do
-  #   url = Shortening.get_url!(id)
-
-  #   case Shortening.update_url(url, url_params) do
-  #     {:ok, url} ->
-  #       conn
-  #       |> put_flash(:info, "Url updated successfully.")
-  #       |> redirect(to: ~p"/urls/#{url}")
-
-  #     {:error, %Ecto.Changeset{} = changeset} ->
-  #       render(conn, :edit, url: url, changeset: changeset)
-  #   end
-  # end
-
-  # def delete(conn, %{"id" => id}) do
-  #   url = Shortening.get_url!(id)
-  #   {:ok, _url} = Shortening.delete_url(url)
-
-  #   conn
-  #   |> put_flash(:info, "Url deleted successfully.")
-  #   |> redirect(to: ~p"/urls")
-  # end
+    if is_nil(url) do
+      conn
+      |> put_flash(:error, "That URLddd does not exist")
+      |> redirect(to: ~p"/urls")
+    else
+      redirect(conn, external: url)
+    end
+  end
 end

@@ -8,7 +8,8 @@ defmodule ShortenIt.Shortening do
 
   alias ShortenIt.Shortening.Url
 
-  @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h i j k l m n p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 - _ ~ ! * ( ) ']
+  @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h
+                           i j k l m n p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 - _ ~ ! * ( )]
 
   @doc """
   Returns the list of urls.
@@ -37,16 +38,35 @@ defmodule ShortenIt.Shortening do
       ** (Ecto.NoResultsError)
 
   """
+
+  def get_url!(id), do: Repo.get!(Url, id)
+
+  @doc """
+  Gets a single url, increments the `visited_count`, and returns the `original_url.
+
+  Returns nil if the record does not exist
+  ## Examples
+
+      iex> get_url_and_update_counter("Cf6FG4XSDcc5")
+      "http://www.example.com"
+
+      iex> get_url!(456)
+      nil
+
+  """
   def get_url_and_update_counter(shortcode) do
     url = Repo.get_by(Url, shortened_url: shortcode)
 
-    update_url(url, %{visit_count: url.visit_count + 1})
-
-    url.original_url
+    if is_nil(url) do
+      nil
+    else
+      update_url(url, %{visit_count: url.visit_count + 1})
+      url.original_url
+    end
   end
 
   @doc """
-  Creates a url.
+  Creates a url, dynamically inserting the `shortcode_url`.
 
   ## Examples
 
@@ -57,19 +77,26 @@ defmodule ShortenIt.Shortening do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_url(attrs \\ %{}) do
-    shortened_url = shortcode_generator()
 
-    existing = Repo.get_by(Url, shortened_url: shortened_url)
+  def create_url(attrs \\ %{}, shortcode_generator \\ &shortcode_generator/0) do
+    shortened_url = shortcode_generator.()
 
-    if existing do
-      create_url()
-    else
-      attrs = Map.merge(%{shortened_url: shortened_url}, attrs)
+    attrs = Map.put(attrs, "shortened_url", shortened_url)
 
+    result =
       %Url{}
       |> Url.changeset(attrs)
       |> Repo.insert()
+
+    case result do
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, %Ecto.Changeset{errors: [shortened_url: _]}} ->
+        create_url(attrs, shortcode_generator)
+
+      {:error, %Ecto.Changeset{errors: [original_url: _]} = changeset} ->
+        {:error, changeset}
     end
   end
 
@@ -92,22 +119,6 @@ defmodule ShortenIt.Shortening do
   end
 
   @doc """
-  Deletes a url.
-
-  ## Examples
-
-      iex> delete_url(url)
-      {:ok, %Url{}}
-
-      iex> delete_url(url)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_url(%Url{} = url) do
-    Repo.delete(url)
-  end
-
-  @doc """
   Returns an `%Ecto.Changeset{}` for tracking url changes.
 
   ## Examples
@@ -120,7 +131,7 @@ defmodule ShortenIt.Shortening do
     Url.changeset(url, attrs)
   end
 
-  def shortcode_generator do
+  defp shortcode_generator do
     Enum.reduce(1..11, "", fn _, acc ->
       character = Enum.random(@shortcode_characters)
       acc <> to_string(character)

@@ -10,6 +10,7 @@ defmodule ShortenIt.Repo.Migrations.CreateUrls do
       timestamps()
     end
 
-    create unique_index(:urls, [:shortened_url])
+    create index(:urls, [:shortened_url])
+    create unique_index(:urls, [:shortened_url], name: :urls_shortened_unique_url_index)
   end
 end
