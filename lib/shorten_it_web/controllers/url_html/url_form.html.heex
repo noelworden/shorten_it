@@ -2,10 +2,8 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
-  <.input field={f[:original_url]} type="text" label="Original url" />
-  <.input field={f[:shortened_url]} type="text" label="Shortened url" />
-  <.input field={f[:visit_count]} type="number" label="Visit count" />
+  <.input field={f[:original_url]} type="text" label="Original URL" />
   <:actions>
-    <.button>Save Url</.button>
+    <.button>Shorten URL</.button>
   </:actions>
 </.simple_form>
