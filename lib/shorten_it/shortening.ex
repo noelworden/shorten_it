@@ -77,7 +77,6 @@ defmodule ShortenIt.Shortening do
       {:error, %Ecto.Changeset{}}
 
   """
-
   def create_url(attrs \\ %{}, shortcode_generator \\ &shortcode_generator/0) do
     shortened_url = shortcode_generator.()
 
@@ -87,6 +86,7 @@ defmodule ShortenIt.Shortening do
       %Url{}
       |> Url.changeset(attrs)
       |> Repo.insert()
+
 
     case result do
       {:ok, result} ->
