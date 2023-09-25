@@ -23,7 +23,31 @@ defmodule ShortenIt.ShorteningTest do
     end
 
     test "create_url/1 with does not allow malformed urls to be saved" do
-      assert {:error, :invalid_input} = Shortening.create_url(@invalid_original_url)
+      assert {:error, %Ecto.Changeset{}} = Shortening.create_url(@invalid_original_url)
+    end
+
+    test "create_url/1 generates unique shortcodes" do
+      {:ok, generator_calls} = Agent.start_link(fn -> 0 end)
+
+      shortcode_generator = fn ->
+        Agent.get_and_update(generator_calls, fn
+          0 -> {"duplicate_shortcode", 1}
+          calls -> {"unique_shortcode#{calls}", calls + 1}
+        end)
+      end
+
+      attrs = %{original_url: "http://some-url.com", shortened_url: "duplicate_shortcode"}
+
+      %Url{}
+      |> Url.changeset(attrs)
+      |> Repo.insert!()
+
+      {:ok, url} = Shortening.create_url(%{"original_url" => "http://example.com"}, shortcode_generator)
+
+      assert url.shortened_url == "unique_shortcode1"
+      assert Agent.get(generator_calls, & &1) > 1
+
+      Agent.stop(generator_calls)
     end
 
     test "list_urls/0 returns all urls ordered by visit_count", context do
