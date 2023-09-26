@@ -4,6 +4,9 @@ defmodule ShortenIt.ShorteningTest do
   alias ShortenIt.Shortening
   alias ShortenIt.Shortening.Url
 
+  @write_threshold 1_000_000
+  @read_threshold @write_threshold
+
   @valid_attrs %{"original_url" => "http://www.example.com"}
   @invalid_original_url %{"original_url" => "httppp://www.example.com"}
   @invalid_visit_count %{"visit_count" => "bad data"}
@@ -109,6 +112,32 @@ defmodule ShortenIt.ShorteningTest do
     test "change_url/1 returns a url changeset", context do
       %{url: url} = context
       assert %Ecto.Changeset{} = Shortening.change_url(url)
+    end
+  end
+
+  describe "performance test" do
+    test "can write 5x in under 1 second" do
+      {time_taken, _result} =
+        :timer.tc(fn ->
+          Enum.each(1..5, fn _ ->
+            Shortening.create_url(@valid_attrs)
+          end)
+        end)
+
+      assert time_taken < @write_threshold
+    end
+
+    test "can read 25x in under 1 second", context do
+      %{url: url} = context
+
+      {time_taken, _result} =
+        :timer.tc(fn ->
+          Enum.each(1..25, fn _ ->
+            Shortening.get_url_and_update_counter(url.shortened_url)
+          end)
+        end)
+
+      assert time_taken < @read_threshold
     end
   end
 end
