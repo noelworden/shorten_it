@@ -17,7 +17,7 @@ defmodule ShortenItWeb.ExportController do
       |> put_root_layout(false)
       |> send_chunked(200)
 
-    {:ok, csv} =
+    {:ok, transaction_result} =
       Repo.transaction(fn ->
         headers = Enum.join(fields, ",") <> "\r\n"
 
@@ -30,10 +30,15 @@ defmodule ShortenItWeb.ExportController do
             acc <> csv_row
           end)
 
-        {:ok, result} = Plug.Conn.chunk(conn, csv_rows)
-        result
+        Plug.Conn.chunk(conn, csv_rows)
       end)
 
-    csv
+    case transaction_result do
+      {:ok, conn} ->
+        conn
+
+      {:error, _error} ->
+        %{conn | resp_body: "There was a problem building the CSV, please try again"}
+    end
   end
 end
