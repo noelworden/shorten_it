@@ -5,6 +5,7 @@ defmodule ShortenItWeb.ExportController do
   alias ShortenIt.Repo
   alias ShortenIt.Shortening.Url
 
+  @spec create(Plug.Conn.t(), any) :: Plug.Conn.t()
   def create(conn, _params) do
     fields = [:original_url, :shortened_url, :visit_count]
 
