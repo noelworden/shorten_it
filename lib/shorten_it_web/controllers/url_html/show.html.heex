@@ -3,4 +3,8 @@
   <:subtitle>http://localhost:4000/<%= @url.shortened_url %></:subtitle>
 </.header>
 
-<.back navigate={~p"/"}>Create new shortened URL</.back>
+<.link href={~p"/"}>
+  <div style="margin-top:50px">
+    <.button>Create New Shorten URL</.button>
+  </div>
+</.link>
