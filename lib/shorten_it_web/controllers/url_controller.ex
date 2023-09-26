@@ -23,13 +23,6 @@ defmodule ShortenItWeb.UrlController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
-
-      {:error, :invalid_input} ->
-        changeset = Shortening.change_url(%Url{})
-
-        conn
-        |> put_flash(:error, "The url needs to begin with 'http://' or 'https://'")
-        |> render(:new, changeset: changeset)
     end
   end
 
@@ -43,7 +36,7 @@ defmodule ShortenItWeb.UrlController do
 
     if is_nil(url) do
       conn
-      |> put_flash(:error, "That URLddd does not exist")
+      |> put_flash(:error, "That URL does not exist")
       |> redirect(to: ~p"/urls")
     else
       redirect(conn, external: url)
