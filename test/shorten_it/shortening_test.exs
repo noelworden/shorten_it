@@ -104,7 +104,7 @@ defmodule ShortenIt.ShorteningTest do
 
     test "update_url/2 with invalid data returns error changeset", context do
       %{url: url} = context
-      # require IEx; IEx.pry()
+
       assert {:error, %Ecto.Changeset{}} = Shortening.update_url(url, @invalid_visit_count)
       assert url == Shortening.get_url!(url.id)
     end

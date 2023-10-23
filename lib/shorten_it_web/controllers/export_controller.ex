@@ -26,10 +26,12 @@ defmodule ShortenItWeb.ExportController do
           Repo.stream(query)
           |> Stream.map(&Map.from_struct/1)
           |> Stream.map(&Map.take(&1, fields))
-          |> Enum.reduce(headers, fn row, acc ->
+          |> Enum.reduce([headers], fn row, acc ->
             csv_row = CSV.encode([row], headers: true) |> Enum.to_list() |> List.delete_at(0) |> to_string()
-            acc <> csv_row
+
+            [csv_row | acc]
           end)
+          |> Enum.reverse()
 
         Plug.Conn.chunk(conn, csv_rows)
       end)
