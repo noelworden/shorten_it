@@ -18,7 +18,7 @@ config :shorten_it, ShortenIt.Repo,
 config :shorten_it, ShortenItWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "hEgXUPapSMTXY23c4yFEaHLCqBwijMdFdvreZMl1GA5Lw32o4K03UdJFMI17Obkb",
-  server: false
+  server: true
 
 # In test we don't send emails.
 config :shorten_it, ShortenIt.Mailer, adapter: Swoosh.Adapters.Test
