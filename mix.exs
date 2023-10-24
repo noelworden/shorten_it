@@ -51,7 +51,8 @@ defmodule ShortenIt.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:csv, "~> 3.2.0"}
+      # {:csv, "~> 3.2.0"}
+      {:nimble_csv, "~> 1.1"}
     ]
   end
 
