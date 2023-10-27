@@ -37,7 +37,7 @@ defmodule ShortenItWeb.UrlController do
   end
 
   def reroute(conn, %{"shortened_url" => shortened_url}) do
-    original_url = Shortening.reroute_and_process(shortened_url)
+    original_url = Shortening.reroute_and_update_counter(shortened_url)
 
     if is_nil(original_url) do
       conn

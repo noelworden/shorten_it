@@ -43,31 +43,6 @@ defmodule ShortenIt.Shortening do
 
   def get_url!(id), do: Repo.get!(Url, id)
 
-  @spec get_url_and_update_counter(String.t()) :: nil | String.t()
-  @doc """
-  Gets a single url, increments the `visited_count`, and returns the `original_url`.
-
-  Returns nil if the record does not exist
-  ## Examples
-
-      iex> get_url_and_update_counter("Cf6FG4XSDcc5")
-      "http://www.example.com"
-
-      iex> get_url!(456)
-      nil
-
-  """
-  def get_url_and_update_counter(shortcode) do
-    url = Repo.get_by(Url, shortened_url: shortcode)
-
-    if is_nil(url) do
-      nil
-    else
-      # update_url(url, %{visit_count: url.visit_count + 1})
-      url.original_url
-    end
-  end
-
   @spec create_url(map, (() -> any)) :: {:ok, Url.t()} | {:error, Ecto.Changeset.t()}
   @doc """
   Creates a url.
@@ -136,16 +111,22 @@ defmodule ShortenIt.Shortening do
     Url.changeset(url, attrs)
   end
 
-  def reroute_and_process(shortened_url) do
-    original_url = get_url_and_update_counter(shortened_url)
-    # require IEx; IEx.pry()
-    if not is_nil(original_url) do
-      %{original_url: original_url}
-      |> ProcessorWorker.new()
-      |> Oban.insert()
-    end
+  def reroute_and_update_counter(shortened_url) do
+    url = Repo.get_by(Url, shortened_url: shortened_url)
 
-    original_url
+    if is_nil(url) do
+      nil
+    else
+      update_visit_count(url.original_url)
+
+      url.original_url
+    end
+  end
+
+  defp update_visit_count(original_url) do
+    %{original_url: original_url}
+    |> ProcessorWorker.new()
+    |> Oban.insert()
   end
 
   defp shortcode_generator do

@@ -1,8 +1,10 @@
 defmodule ShortenIt.ShorteningTest do
   use ShortenIt.DataCase, async: true
+  use Oban.Testing, repo: ShortenIt.Repo
 
   alias ShortenIt.Shortening
   alias ShortenIt.Shortening.Url
+  alias ShortenIt.Workers.ProcessorWorker
 
   @write_threshold 1_000_000
   @read_threshold @write_threshold
@@ -58,10 +60,8 @@ defmodule ShortenIt.ShorteningTest do
       {:ok, url02} = Shortening.create_url(@valid_attrs)
       {:ok, url03} = Shortening.create_url(@valid_attrs)
 
-      _visit01 = Shortening.get_url_and_update_counter(url02.shortened_url)
-      _visit02 = Shortening.get_url_and_update_counter(url02.shortened_url)
-      _visit03 = Shortening.get_url_and_update_counter(url02.shortened_url)
-      _visit04 = Shortening.get_url_and_update_counter(url01.shortened_url)
+      {:ok, _url02} = Shortening.update_url(url02, %{visit_count: 5})
+      {:ok, _url01} = Shortening.update_url(url01, %{visit_count: 2})
 
       result =
         Shortening.list_urls()
@@ -70,20 +70,36 @@ defmodule ShortenIt.ShorteningTest do
       assert result == [url02.shortened_url, url01.shortened_url, url03.shortened_url]
     end
 
-    test "get_url_and_update_counter/1 returns the url with given id", context do
+    test "reroute_and_update_counter/1 returns the url when passed an existing shortened_url", context do
       %{url: url} = context
 
-      assert Shortening.get_url_and_update_counter(url.shortened_url) == url.original_url
+      assert Shortening.reroute_and_update_counter(url.shortened_url) == url.original_url
     end
 
-    test "get_url_and_update_counter/1 updates the `visit_count` field", context do
+    test "reroute_and_update_counter/1 returns nil when passed a non-existent shortened_url" do
+      url = Shortening.reroute_and_update_counter("non_existent_shortened_url")
+
+      assert is_nil(url)
+    end
+
+    test "reroute_and_update_counter/1 enqueues the update job", context do
       %{url: url} = context
 
-      _url = Shortening.get_url_and_update_counter(url.shortened_url)
+      _url = Shortening.reroute_and_update_counter(url.shortened_url)
+
+      assert_enqueued(worker: ProcessorWorker, args: %{original_url: url.original_url}, queue: :default)
+
+      assert %{success: 1, failure: 0} = Oban.drain_queue(queue: :default)
 
       returned_url = Repo.get(Url, url.id)
-
       assert returned_url.visit_count == url.visit_count + 1
+    end
+
+    test "reroute_and_update_counter/1 does not enqueues the update job if the url is nil" do
+      url = Shortening.reroute_and_update_counter("non_existent_shortened_url")
+
+      assert is_nil(url)
+      refute_enqueued(worker: ProcessorWorker)
     end
 
     test "get_url!/1 returns the url with given id", context do
@@ -133,7 +149,7 @@ defmodule ShortenIt.ShorteningTest do
       {time_taken, _result} =
         :timer.tc(fn ->
           Enum.each(1..25, fn _ ->
-            Shortening.get_url_and_update_counter(url.shortened_url)
+            Shortening.reroute_and_update_counter(url.shortened_url)
           end)
         end)
 

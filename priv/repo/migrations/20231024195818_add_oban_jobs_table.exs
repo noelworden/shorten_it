@@ -5,7 +5,7 @@ defmodule ShortenIt.Repo.Migrations.AddObanJobsTable do
     Oban.Migration.up(version: 11)
   end
 
-   def down do
+  def down do
     Oban.Migration.down(version: 1)
   end
 end
