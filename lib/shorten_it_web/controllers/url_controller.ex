@@ -3,7 +3,6 @@ defmodule ShortenItWeb.UrlController do
 
   alias ShortenIt.Shortening
   alias ShortenIt.Shortening.Url
-  # alias ShortenIt.Workers.ProcessorWorker
 
   @spec index(Plug.Conn.t(), any) :: Plug.Conn.t()
   def index(conn, _params) do

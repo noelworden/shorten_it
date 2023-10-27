@@ -87,7 +87,16 @@ defmodule ShortenIt.ShorteningTest do
 
       _url = Shortening.reroute_and_update_counter(url.shortened_url)
 
-      assert_enqueued(worker: ProcessorWorker, args: %{original_url: url.original_url}, queue: :default)
+      url_map = %{
+        id: url.id,
+        original_url: url.original_url,
+        shortened_url: url.shortened_url,
+        visit_count: url.visit_count,
+        inserted_at: url.inserted_at,
+        updated_at: url.updated_at
+      }
+
+      assert_enqueued(worker: ProcessorWorker, args: %{url: url_map}, queue: :default)
 
       assert %{success: 1, failure: 0} = Oban.drain_queue(queue: :default)
 

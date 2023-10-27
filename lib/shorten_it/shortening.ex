@@ -4,8 +4,8 @@ defmodule ShortenIt.Shortening do
   """
 
   import Ecto.Query, warn: false
-  alias ShortenIt.Shortening.Url
   alias ShortenIt.Repo
+  alias ShortenIt.Shortening.Url
   alias ShortenIt.Workers.ProcessorWorker
 
   @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h
@@ -117,14 +117,20 @@ defmodule ShortenIt.Shortening do
     if is_nil(url) do
       nil
     else
-      update_visit_count(url.original_url)
+      update_visit_count(url)
 
       url.original_url
     end
   end
 
-  defp update_visit_count(original_url) do
-    %{original_url: original_url}
+  defp update_visit_count(url) do
+    url_map =
+      url
+      |> Map.from_struct()
+      |> Map.drop([:__struct__])
+      |> Map.drop([:__meta__])
+
+    %{url: url_map}
     |> ProcessorWorker.new()
     |> Oban.insert()
   end
