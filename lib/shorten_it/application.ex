@@ -17,7 +17,8 @@ defmodule ShortenIt.Application do
       # Start Finch
       {Finch, name: ShortenIt.Finch},
       # Start the Endpoint (http/https)
-      ShortenItWeb.Endpoint
+      ShortenItWeb.Endpoint,
+      {Oban, Application.fetch_env!(:shorten_it, Oban)}
       # Start a worker by calling: ShortenIt.Worker.start_link(arg)
       # {ShortenIt.Worker, arg}
     ]

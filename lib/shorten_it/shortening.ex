@@ -4,9 +4,9 @@ defmodule ShortenIt.Shortening do
   """
 
   import Ecto.Query, warn: false
-  alias ShortenIt.Repo
-
   alias ShortenIt.Shortening.Url
+  alias ShortenIt.Repo
+  alias ShortenIt.Workers.ProcessorWorker
 
   @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h
                            i j k l m n p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 - _ ~ ! * ( )]
@@ -63,7 +63,7 @@ defmodule ShortenIt.Shortening do
     if is_nil(url) do
       nil
     else
-      update_url(url, %{visit_count: url.visit_count + 1})
+      # update_url(url, %{visit_count: url.visit_count + 1})
       url.original_url
     end
   end
@@ -134,6 +134,18 @@ defmodule ShortenIt.Shortening do
   """
   def change_url(%Url{} = url, attrs \\ %{}) do
     Url.changeset(url, attrs)
+  end
+
+  def reroute_and_process(shortened_url) do
+    original_url = get_url_and_update_counter(shortened_url)
+    # require IEx; IEx.pry()
+    if not is_nil(original_url) do
+      %{original_url: original_url}
+      |> ProcessorWorker.new()
+      |> Oban.insert()
+    end
+
+    original_url
   end
 
   defp shortcode_generator do

@@ -3,6 +3,7 @@ defmodule ShortenItWeb.UrlController do
 
   alias ShortenIt.Shortening
   alias ShortenIt.Shortening.Url
+  # alias ShortenIt.Workers.ProcessorWorker
 
   @spec index(Plug.Conn.t(), any) :: Plug.Conn.t()
   def index(conn, _params) do
@@ -36,14 +37,14 @@ defmodule ShortenItWeb.UrlController do
   end
 
   def reroute(conn, %{"shortened_url" => shortened_url}) do
-    url = Shortening.get_url_and_update_counter(shortened_url)
+    original_url = Shortening.reroute_and_process(shortened_url)
 
-    if is_nil(url) do
+    if is_nil(original_url) do
       conn
       |> put_flash(:error, "That URL does not exist")
       |> redirect(to: ~p"/")
     else
-      redirect(conn, external: url)
+      redirect(conn, external: original_url)
     end
   end
 end
