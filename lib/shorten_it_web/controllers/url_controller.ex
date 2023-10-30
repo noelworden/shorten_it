@@ -4,16 +4,19 @@ defmodule ShortenItWeb.UrlController do
   alias ShortenIt.Shortening
   alias ShortenIt.Shortening.Url
 
+  @spec index(Plug.Conn.t(), any) :: Plug.Conn.t()
   def index(conn, _params) do
     urls = Shortening.list_urls()
     render(conn, :index, urls: urls)
   end
 
+  @spec new(Plug.Conn.t(), any) :: Plug.Conn.t()
   def new(conn, _params) do
     changeset = Shortening.change_url(%Url{})
     render(conn, :new, changeset: changeset)
   end
 
+  @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, %{"url" => url_params}) do
     case Shortening.create_url(url_params) do
       {:ok, url} ->
@@ -26,6 +29,7 @@ defmodule ShortenItWeb.UrlController do
     end
   end
 
+  @spec show(Plug.Conn.t(), map) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
     url = Shortening.get_url!(id)
     render(conn, :show, url: url)
@@ -37,7 +41,7 @@ defmodule ShortenItWeb.UrlController do
     if is_nil(url) do
       conn
       |> put_flash(:error, "That URL does not exist")
-      |> redirect(to: ~p"/urls")
+      |> redirect(to: ~p"/")
     else
       redirect(conn, external: url)
     end

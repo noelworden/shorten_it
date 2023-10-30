@@ -9,7 +9,11 @@ defmodule ShortenItWeb.UrlControllerTest do
   describe "index" do
     test "lists all urls", %{conn: conn} do
       conn = get(conn, ~p"/stats")
-      assert html_response(conn, 200) =~ "Listing Urls"
+      response = html_response(conn, 200)
+
+      assert response =~ "Original URL"
+      assert response =~ "Shortened URL"
+      assert response =~ "Visit count"
     end
   end
 
