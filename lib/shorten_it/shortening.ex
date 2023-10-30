@@ -111,6 +111,16 @@ defmodule ShortenIt.Shortening do
     Url.changeset(url, attrs)
   end
 
+  @spec reroute_and_update_counter(String.t()) :: String.t() | nil
+  @doc """
+  Returns the original_url and kicks off Oban job to update the `visit_count`.
+
+  ## Examples
+
+      iex> reroute_and_update_counter("48KH(!x~3p6")
+      "https://www.example.com"
+
+  """
   def reroute_and_update_counter(shortened_url) do
     url = Repo.get_by(Url, shortened_url: shortened_url)
 
