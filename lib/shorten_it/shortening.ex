@@ -11,6 +11,7 @@ defmodule ShortenIt.Shortening do
   @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h
                            i j k l m n p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 - _ ~ ! * ( )]
 
+  @spec list_urls :: map
   @doc """
   Returns the list of urls.
 
@@ -24,6 +25,7 @@ defmodule ShortenIt.Shortening do
     Repo.all(from(u in Url, order_by: [desc: u.visit_count]))
   end
 
+  @spec get_url!(Integer.t()) :: Url.t()
   @doc """
   Gets a single url.
 
@@ -41,6 +43,7 @@ defmodule ShortenIt.Shortening do
 
   def get_url!(id), do: Repo.get!(Url, id)
 
+  @spec get_url_and_update_counter(String.t()) :: nil | String.t()
   @doc """
   Gets a single url, increments the `visited_count`, and returns the `original_url.
 
@@ -65,6 +68,7 @@ defmodule ShortenIt.Shortening do
     end
   end
 
+  @spec create_url(map, (() -> any)) :: {:ok, Url.t()} | {:error, Ecto.Changeset.t()}
   @doc """
   Creates a url.
 
@@ -99,6 +103,7 @@ defmodule ShortenIt.Shortening do
     end
   end
 
+  @spec update_url(map, map) :: {:ok, Url.t()} | {:error, Ecto.Changeset.t()}
   @doc """
   Updates a url.
 
@@ -117,6 +122,7 @@ defmodule ShortenIt.Shortening do
     |> Repo.update()
   end
 
+  @spec change_url(map, map) :: Ecto.Changeset.t()
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking url changes.
 

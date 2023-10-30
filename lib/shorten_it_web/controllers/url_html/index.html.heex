@@ -1,5 +1,4 @@
 <.header>
-  Listing Urls
   <:actions>
     <.link href={~p"/"}>
       <.button>New Shorten URL</.button>
@@ -9,13 +8,13 @@
 
 <div style="display: flex; justify-content: center;">
   <.table id="urls" rows={@urls}>
-    <:col :let={url} label="Original url">
+    <:col :let={url} label="Original URL">
       <div style="width:300px; overflow-x: auto; white-space: nowrap;">
         <%= url.original_url %>
       </div>
     </:col>
-    <:col :let={url} label="Shortened url">
-      <div style="width:300px;">http://localhost/<%= url.shortened_url %></div>
+    <:col :let={url} label="Shortened URL">
+      <div style="width:300px;">http://localhost:4000/<%= url.shortened_url %></div>
     </:col>
     <:col :let={url} label="Visit count">
       <div style="width:100px;"><%= url.visit_count %></div>
