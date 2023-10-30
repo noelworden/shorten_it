@@ -5,8 +5,8 @@ defmodule ShortenIt.Shortening do
 
   import Ecto.Query, warn: false
   alias ShortenIt.Repo
-
   alias ShortenIt.Shortening.Url
+  alias ShortenIt.Workers.ProcessorWorker
 
   @shortcode_characters ~w[A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h
                            i j k l m n p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 - _ ~ ! * ( )]
@@ -42,31 +42,6 @@ defmodule ShortenIt.Shortening do
   """
 
   def get_url!(id), do: Repo.get!(Url, id)
-
-  @spec get_url_and_update_counter(String.t()) :: nil | String.t()
-  @doc """
-  Gets a single url, increments the `visited_count`, and returns the `original_url`.
-
-  Returns nil if the record does not exist
-  ## Examples
-
-      iex> get_url_and_update_counter("Cf6FG4XSDcc5")
-      "http://www.example.com"
-
-      iex> get_url!(456)
-      nil
-
-  """
-  def get_url_and_update_counter(shortcode) do
-    url = Repo.get_by(Url, shortened_url: shortcode)
-
-    if is_nil(url) do
-      nil
-    else
-      update_url(url, %{visit_count: url.visit_count + 1})
-      url.original_url
-    end
-  end
 
   @spec create_url(map, (() -> any)) :: {:ok, Url.t()} | {:error, Ecto.Changeset.t()}
   @doc """
@@ -134,6 +109,40 @@ defmodule ShortenIt.Shortening do
   """
   def change_url(%Url{} = url, attrs \\ %{}) do
     Url.changeset(url, attrs)
+  end
+
+  @spec reroute_and_update_counter(String.t()) :: String.t() | nil
+  @doc """
+  Returns the original_url and kicks off Oban job to update the `visit_count`.
+
+  ## Examples
+
+      iex> reroute_and_update_counter("48KH(!x~3p6")
+      "https://www.example.com"
+
+  """
+  def reroute_and_update_counter(shortened_url) do
+    url = Repo.get_by(Url, shortened_url: shortened_url)
+
+    if is_nil(url) do
+      nil
+    else
+      update_visit_count(url)
+
+      url.original_url
+    end
+  end
+
+  defp update_visit_count(url) do
+    url_map =
+      url
+      |> Map.from_struct()
+      |> Map.drop([:__struct__])
+      |> Map.drop([:__meta__])
+
+    %{url: url_map}
+    |> ProcessorWorker.new()
+    |> Oban.insert()
   end
 
   defp shortcode_generator do

@@ -30,6 +30,11 @@ config :shorten_it, ShortenItWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :shorten_it, ShortenIt.Mailer, adapter: Swoosh.Adapters.Local
 
+config :shorten_it, Oban,
+  repo: ShortenIt.Repo,
+  plugins: [Oban.Plugins.Pruner],
+  queues: [default: 2]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",

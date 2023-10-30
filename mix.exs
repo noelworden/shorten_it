@@ -52,7 +52,8 @@ defmodule ShortenIt.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:nimble_csv, "~> 1.1"},
-      {:httpoison, "~> 1.8", only: :test}
+      {:httpoison, "~> 1.8", only: :test},
+      {:oban, "~> 2.16"}
     ]
   end
 

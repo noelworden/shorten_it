@@ -23,6 +23,9 @@ config :shorten_it, ShortenItWeb.Endpoint,
 # In test we don't send emails.
 config :shorten_it, ShortenIt.Mailer, adapter: Swoosh.Adapters.Test
 
+# Prevent Oban from running jobs and plugins during test runs
+config :shorten_it, Oban, testing: :manual
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
