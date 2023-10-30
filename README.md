@@ -1,18 +1,36 @@
-# ShortenIt
+# ShortenIt - Your Handy URL Shortener
 
-To start your Phoenix server:
+## Requirements
+- Install [Docker Desktop](https://docs.docker.com/desktop/install/mac-install/)
+- Install [asdf](https://asdf-vm.com/guide/getting-started.html)
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
-
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
-
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+## Startup steps
+1. Clone down the repo and navigate to it in the terminal
+1. Install languages via `asdf`
+    - `asdf plugin add erlang`
+    - `asdf plugin add elixir`
+    - `asdf install`
+1. Ensure Docker Desktop is running
+1. Open a second tab and start the database
+    - Create a a `postgres` instance with a volume (to persist the data)
+        ```
+        docker container run --name postgres -p 5432:5432 \
+        -e POSTGRES_PASSWORD=postgres \
+        -v shorten_it_postgres:/var/lib/postgresql/data \
+        --rm postgres:15.4
+        ```
+1. Back in the first tab, setup the app
+    - `mix setup`
+1. Confirm the tests pass
+    - `mix test`
+1. In that same tab, spin up the server
+    - `mix phx.server`
+## How to use the app
+### Short URL Creation
+- Navigate to [http://localhost:4000](http://localhost:4000) and enter a URL to be shortend
+- After submitting the form, you will be shown the generated short URL, ie: `localhost:4000/AvzXx6zwPE~`
+- Copy the entire URL and past into the address bar of your browser
+- You will be redirected to the URL you originally provided
+### Stats
+- There is an option to view a list of all shortened URLs and their respective view counts, it can be found at: [http://localhost:4000/stats](http://localhost:4000/stats)
+- That page also gives the option to download the data as a CSV
