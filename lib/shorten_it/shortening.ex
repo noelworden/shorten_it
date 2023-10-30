@@ -45,7 +45,7 @@ defmodule ShortenIt.Shortening do
 
   @spec get_url_and_update_counter(String.t()) :: nil | String.t()
   @doc """
-  Gets a single url, increments the `visited_count`, and returns the `original_url.
+  Gets a single url, increments the `visited_count`, and returns the `original_url`.
 
   Returns nil if the record does not exist
   ## Examples

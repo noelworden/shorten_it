@@ -17,6 +17,7 @@ defmodule ShortenItWeb.Router do
   scope "/", ShortenItWeb do
     pipe_through :browser
 
+    get "/export", ExportController, :create
     get "/", UrlController, :new
     resources "/urls", UrlController, only: [:create, :show]
     get "/stats", UrlController, :index
